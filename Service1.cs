@@ -28,18 +28,26 @@ namespace WindowsServiceChechWeb
                 YazLog($"Aktif bir internet bağlantısı yok. Zaman: {DateTime.Now}");
                 return;
             }
-            int count = 0;
-            Process[] procs = Process.GetProcessesByName("ConsoleApp1");
-            if (procs.Length > 0)
-            {
-                foreach (Process proc in procs)
+            try {
+                int count = 0;
+                Process[] procs = Process.GetProcessesByName("ConsoleApp1");
+                if (procs.Length > 0)
                 {
-                    count++;
-                    //do other stuff if you need to find out if this is the correct proc instance if you have more than one
-                    proc.Kill();
+                    foreach (Process proc in procs)
+                    {
+                        count++;
+                        //do other stuff if you need to find out if this is the correct proc instance if you have more than one
+                        proc.Kill();
+                    }
                 }
+                YazLog($"ConsoleApp1 isimli task {count} defa çalıştırılmış. Tüm task'ler kapatıldı.");
             }
-            YazLog($"ConsoleApp1 isimli task {count} defa çalıştırılmış. Tüm task'ler kapatıldı.");
+            catch (Exception e)
+            {
+                YazHataLog($"Servis çalıştırılırken bir hata meydana geldi. Zaman:{DateTime.Now}\n{e.Message}");
+                return;
+            }
+            
             timer1.Elapsed += new ElapsedEventHandler(OnElapsedTime);
             timer1.Interval = 1800000;
             timer1.Enabled = true;
@@ -47,6 +55,7 @@ namespace WindowsServiceChechWeb
         }
         private void OnElapsedTime(object source, ElapsedEventArgs e)
         {
+            
             if (CheckForInternetConnection())
             {
                 YazLog($"Aktif bir internet bağlantısı var. Zaman: {DateTime.Now}");
@@ -80,8 +89,9 @@ namespace WindowsServiceChechWeb
                     return true;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                YazHataLog($"Servis çalıştırılırken bir hata meydana geldi. Zaman:{DateTime.Now}\n{e.Message}");
                 return false;
             }
         }
@@ -132,6 +142,7 @@ namespace WindowsServiceChechWeb
             }
             catch(Exception e)
             {
+                YazHataLog($"Servis çalıştırılırken bir hata meydana geldi. Zaman:{DateTime.Now}\n{e.Message}");
                 return false;
             }
         }
@@ -147,6 +158,32 @@ namespace WindowsServiceChechWeb
                 Directory.CreateDirectory(path);
             }
             string filepath = $@"{path}\ServisGirdi_{DateTime.Now.Date.ToShortDateString().Replace('/', '_')}.txt";
+            if (!File.Exists(filepath))
+            {
+                using (StreamWriter sw = File.CreateText(filepath))
+                {
+                    sw.WriteLine(girdi);
+                    sw.WriteLine("--------------------------------------------------");
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = File.AppendText(filepath))
+                {
+                    sw.WriteLine(girdi);
+                    sw.WriteLine("--------------------------------------------------");
+                }
+            }
+        }
+
+        public static void YazHataLog(string girdi)
+        {
+            string path = @"C:\Users\kadir\OneDrive\Desktop\Logs";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string filepath = $@"{path}\ServisHataGirdi_{DateTime.Now.Date.ToShortDateString().Replace('/', '_')}.txt";
             if (!File.Exists(filepath))
             {
                 using (StreamWriter sw = File.CreateText(filepath))
