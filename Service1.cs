@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.ServiceProcess;
+using System.Threading;
+using System.Timers;
 
 namespace WindowsServiceChechWeb
 {
@@ -11,31 +14,58 @@ namespace WindowsServiceChechWeb
         {
             InitializeComponent();
         }
-
+        System.Timers.Timer timer1 = new System.Timers.Timer();
         protected override void OnStart(string[] args)
         {
+            
             YazLog($"Hizmet çalışmaya başladı. Zaman: {DateTime.Now}");
             if (CheckForInternetConnection())
             {
-                YazLog($"Aktif bir internet bağlantısı var.");
+                YazLog($"Aktif bir internet bağlantısı var. Zaman: {DateTime.Now}");
             }
             else
             {
-                YazLog($"Aktif bir internet bağlantısı yok.");
+                YazLog($"Aktif bir internet bağlantısı yok. Zaman: {DateTime.Now}");
                 return;
             }
-            //string _url = "http://serkanogutcuoglu.website/";
-            string _url = "http://thissiteiscreatedbyimagination.site/";
-            if (CheckForSiteConnection(_url))
+            int count = 0;
+            Process[] procs = Process.GetProcessesByName("ConsoleApp1");
+            if (procs.Length > 0)
             {
-                YazLog($"{_url} sitesine bağlantı var.");
+                foreach (Process proc in procs)
+                {
+                    count++;
+                    //do other stuff if you need to find out if this is the correct proc instance if you have more than one
+                    proc.Kill();
+                }
+            }
+            YazLog($"ConsoleApp1 isimli task {count} defa çalıştırılmış. Tüm task'ler kapatıldı.");
+            timer1.Elapsed += new ElapsedEventHandler(OnElapsedTime);
+            timer1.Interval = 1800000;
+            timer1.Enabled = true;
+            
+        }
+        private void OnElapsedTime(object source, ElapsedEventArgs e)
+        {
+            if (CheckForInternetConnection())
+            {
+                YazLog($"Aktif bir internet bağlantısı var. Zaman: {DateTime.Now}");
             }
             else
             {
-                YazLog($"{_url} sitesine bağlantı yok.");
+                YazLog($"Aktif bir internet bağlantısı yok. Zaman: {DateTime.Now}");
+                return;
+            }
+            string _url = "https://youtube.com";
+            if (CheckForSiteConnection(_url))
+            {
+                YazLog($"{_url} sitesine bağlantı var. Zaman: {DateTime.Now}");
+            }
+            else
+            {
+                YazLog($"{_url} sitesine bağlantı yok. Zaman: {DateTime.Now}");
             }
         }
-
         //Yöntem 3
         public static bool CheckForInternetConnection(int timeoutMs = 10000)
         {
@@ -100,7 +130,7 @@ namespace WindowsServiceChechWeb
                     }
                 }
             }
-            catch
+            catch(Exception e)
             {
                 return false;
             }
