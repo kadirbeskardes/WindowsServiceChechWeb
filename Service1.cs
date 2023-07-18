@@ -5,6 +5,10 @@ using System.Net;
 using System.ServiceProcess;
 using System.Threading;
 using System.Timers;
+using System.Linq;
+using System.Windows;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace WindowsServiceChechWeb
 {
@@ -26,36 +30,35 @@ namespace WindowsServiceChechWeb
             else
             {
                 YazLog($"Aktif bir internet bağlantısı yok. Zaman: {DateTime.Now}");
-                return;
             }
             try {
                 int count = 0;
                 Process[] procs = Process.GetProcessesByName("ConsoleApp1");
+                /*Process proce=procs.OrderBy(obj => obj.StartTime).FirstOrDefault();
+                procs=procs.Where(obj => obj != proce).ToArray();*/
                 if (procs.Length > 0)
                 {
                     foreach (Process proc in procs)
                     {
                         count++;
-                        //do other stuff if you need to find out if this is the correct proc instance if you have more than one
                         proc.Kill();
                     }
+                    YazLog($"ConsoleApp1 isimli task {count} defa çalıştırılmış. Tüm task'ler kapatıldı.");
                 }
-                YazLog($"ConsoleApp1 isimli task {count} defa çalıştırılmış. Tüm task'ler kapatıldı.");
             }
             catch (Exception e)
             {
                 YazHataLog($"Servis çalıştırılırken bir hata meydana geldi. Zaman:{DateTime.Now}\n{e.Message}");
-                return;
             }
             
             timer1.Elapsed += new ElapsedEventHandler(OnElapsedTime);
-            timer1.Interval = 1800000;
+            timer1.Interval = 600000;
             timer1.Enabled = true;
             
         }
+        
         private void OnElapsedTime(object source, ElapsedEventArgs e)
         {
-            
             if (CheckForInternetConnection())
             {
                 YazLog($"Aktif bir internet bağlantısı var. Zaman: {DateTime.Now}");
@@ -76,14 +79,14 @@ namespace WindowsServiceChechWeb
             }
         }
         //Yöntem 3
-        public static bool CheckForInternetConnection(int timeoutMs = 10000)
+        public static bool CheckForInternetConnection()
         {
             try
             {
                 string url = "http://www.gstatic.com/generate_204";
                 var request = (HttpWebRequest)WebRequest.Create(url);
                 request.KeepAlive = false;
-                request.Timeout = timeoutMs;
+                request.Timeout = 100000;
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
                     return true;
