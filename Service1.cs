@@ -34,8 +34,8 @@ namespace WindowsServiceChechWeb
             try {
                 int count = 0;
                 Process[] procs = Process.GetProcessesByName("ConsoleApp1");
-                /*Process proce=procs.OrderBy(obj => obj.StartTime).FirstOrDefault();
-                procs=procs.Where(obj => obj != proce).ToArray();*/
+                Process proce=procs.OrderBy(obj => obj.StartTime).FirstOrDefault();
+                procs=procs.Where(obj => obj != proce).ToArray();
                 if (procs.Length > 0)
                 {
                     foreach (Process proc in procs)
