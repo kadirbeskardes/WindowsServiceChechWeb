@@ -21,7 +21,6 @@ namespace WindowsServiceChechWeb
         System.Timers.Timer timer1 = new System.Timers.Timer();
         protected override void OnStart(string[] args)
         {
-            
             YazLog($"Hizmet çalışmaya başladı. Zaman: {DateTime.Now}");
             if (CheckForInternetConnection())
             {
